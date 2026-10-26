@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.0 — 2026-10-26
 
 - Initial release: `RedisIdempotencyStorage` over Redis/Valkey for
   `rasuvaeff/yii3-idempotency` — atomic Lua claim/store/release, a random
