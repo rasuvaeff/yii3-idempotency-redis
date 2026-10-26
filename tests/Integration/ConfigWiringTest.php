@@ -29,7 +29,7 @@ final class ConfigWiringTest
     public function bindsOnlyItsOwnKeys(): void
     {
         Assert::same(
-            array_keys($this->loadDi()),
+            array_keys($this->loadDi([])),
             [IdempotencyStorage::class],
         );
     }
@@ -61,7 +61,7 @@ final class ConfigWiringTest
 
     private function resolveStorage(array $params): IdempotencyStorage
     {
-        $definitions = $this->loadDi();
+        $definitions = $this->loadDi($params);
         $factory = $definitions[IdempotencyStorage::class];
         Assert::true(is_callable($factory));
 
@@ -87,7 +87,7 @@ final class ConfigWiringTest
         return $storage;
     }
 
-    private function loadDi(): array
+    private function loadDi(array $params): array
     {
         return require dirname(__DIR__, 2) . '/config/di.php';
     }
