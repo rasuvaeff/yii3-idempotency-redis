@@ -1,0 +1,22 @@
+{
+    "$schema": "vendor/infection/infection/resources/schema.json",
+    "source": {
+        "directories": ["src"]
+    },
+    "logs": {
+        "text": "php://stderr",
+        "summary": "build/infection-summary.log"
+    },
+    "testFramework": "testo",
+    // 100% reachable with the Unit suite (mocked runner) plus the Integration
+    // suite against a reachable Redis (REDIS_HOST): infection's own test run
+    // executes every suite, so the Lua-backed storage and both script runners
+    // are covered. 9 of 146 mutants are timeouts (infinite-loop mutants of
+    // the reply-parsing loop), which count as caught but can flake into
+    // escapes on a slow runner — 98 leaves margin for that without hiding a
+    // real gap.
+    "minMsi": 98,
+    "mutators": {
+        "@default": true
+    }
+}

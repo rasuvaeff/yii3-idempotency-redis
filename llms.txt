@@ -1,0 +1,85 @@
+# yii3-idempotency-redis
+
+## Install
+
+```bash
+composer require rasuvaeff/yii3-idempotency-redis
+```
+
+Requires `rasuvaeff/yii3-idempotency` ^2.2 and a Redis client: `ext-redis`
+(PhpRedisScriptRunner) or `predis/predis` ^2.2 (PredisScriptRunner). Redis 2.6+
+or any Valkey.
+
+## Rules
+
+- One backend next to the core: this package OR `rasuvaeff/yii3-idempotency-db`,
+  never both — `yiisoft/config` fails on the duplicate `IdempotencyStorage` key
+  by design.
+- The application binds `IdempotencyScriptRunner` over its own client; the
+  package binds only `IdempotencyStorage`.
+- `claimTtlSeconds` must exceed the longest handler runtime: past it the key
+  frees and a duplicate may re-run the effect.
+- Ops: `maxmemory-policy noeviction` + AOF — an evicted or lost hash re-opens
+  the key (duplicate execution).
+- One HASH per key; body stored raw (Redis fields are binary-safe); the key's
+  server-side TTL is the only expiry mechanism (no GC).
+
+## API
+
+### RedisIdempotencyStorage
+
+```php
+use Rasuvaeff\Yii3IdempotencyRedis\RedisIdempotencyStorage;
+
+$storage = new RedisIdempotencyStorage(
+    runner: $runner,            // IdempotencyScriptRunner
+    clock: $clock,              // psr/clock
+    keyPrefix: 'idempotency:',  // non-empty
+    claimTtlSeconds: 3600,      // >= 1
+);
+// implements IdempotencyStorage (load/claim/store/release),
+// ClaimedFingerprintProvider (mid-flight 422 vs 409),
+// ClaimedDeadlineProvider (Retry-After on the 409)
+```
+
+- `claim()` returns false when the key is taken (in-flight claim or stored
+  record); generates a random 32-hex ownership token remembered per instance.
+- `store()` writes only into the claim this instance took (token match) or
+  into a free key; a fenced-out store is a silent loss by design.
+- `release()` deletes only this instance's live claim; a release without a
+  claim is a no-op.
+- Throws `UnexpectedRedisReplyException` when a reply has an unreadable shape
+  (the key space is written by something else).
+
+### IdempotencyScriptRunner (interface)
+
+```php
+interface IdempotencyScriptRunner {
+    public function run(string $script, array $keys, array $args): mixed;
+}
+```
+
+### Runners
+
+```php
+use Rasuvaeff\Yii3IdempotencyRedis\Redis\PhpRedisScriptRunner;   // ext-redis
+use Rasuvaeff\Yii3IdempotencyRedis\Redis\PredisScriptRunner;     // predis
+
+new PhpRedisScriptRunner(new \Redis());        // connected
+new PredisScriptRunner($predisClient);
+```
+
+Both send EVALSHA first and fall back to EVAL on NOSCRIPT (loading the script
+cache).
+
+### Config
+
+```php
+// params
+'rasuvaeff/yii3-idempotency-redis' => [
+    'keyPrefix' => 'idempotency:',
+    'claimTtlSeconds' => 3600,
+],
+// di: the app binds IdempotencyScriptRunner over its client;
+// the package binds IdempotencyStorage => RedisIdempotencyStorage
+```
