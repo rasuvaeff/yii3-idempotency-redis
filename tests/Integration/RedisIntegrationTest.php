@@ -253,6 +253,41 @@ final class RedisIntegrationTest
         Assert::false($loaded->fingerprint->equals($this->fingerprint(self::OTHER_FINGERPRINT)));
     }
 
+    /**
+     * A Post/Redirect/Get outcome: since the core's `cacheableRedirectStatuses`
+     * (2.3.0) a `303 See Other` snapshot is stored like a success, and the hash
+     * must round-trip with its status and the `Location` header intact — the
+     * Lua scripts persist any status and never have, but this pins the PRG
+     * shape the core now relies on (rasuvaeff/yii3-idempotency#35).
+     */
+    public function aSeeOtherSnapshotRoundTripsWithItsLocationHeader(): void
+    {
+        if (!$this->ready()) {
+            return;
+        }
+
+        $key = $this->key('prg-303');
+
+        Assert::true($this->storage->claim($key, $this->fingerprint()));
+        $this->storage->store(IdempotencyRecord::restore(
+            key: $key,
+            fingerprint: $this->fingerprint(),
+            response: new IdempotencyResponse(
+                statusCode: 303,
+                headers: ['Location' => ['/guestbook?page=3']],
+                body: '',
+            ),
+            expiresAt: $this->clock->now()->modify('+600 seconds'),
+        ));
+
+        $loaded = $this->storage->load($key);
+
+        Assert::notNull($loaded);
+        Assert::same($loaded->response->statusCode, 303);
+        Assert::same($loaded->response->headers, ['Location' => ['/guestbook?page=3']]);
+        Assert::same($loaded->response->body, '');
+    }
+
     private function ready(): bool
     {
         // setUp() leaves the storage unset when REDIS_HOST is absent — the
