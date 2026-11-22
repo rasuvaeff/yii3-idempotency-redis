@@ -21,7 +21,7 @@
         "source": "https://github.com/rasuvaeff/yii3-idempotency-redis"
     },
     "require": {
-        "php": "8.3 - 8.5",
+        "php": "8.3 - 8.6",
         "psr/clock": "^1.0",
         "rasuvaeff/yii3-idempotency": "^2.2"
     },
@@ -37,7 +37,7 @@
         "roave/backward-compatibility-check": "^8.0",
         "testo/bridge-infection": "^0.1.6",
         "testo/testo": "^0.10.25",
-        "vimeo/psalm": "^7.0",
+        "vimeo/psalm": "^7.15",
         "yiisoft/test-support": "^3.0"
     },
     "suggest": {

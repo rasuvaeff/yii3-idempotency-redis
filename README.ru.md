@@ -19,7 +19,7 @@ ownership-токен, фенсирующий зомби-обработчики, 
 
 ## Требования
 
-- PHP 8.3+
+- PHP 8.3 – 8.6
 - `rasuvaeff/yii3-idempotency` ^2.2
 - `psr/clock` ^1.0
 - Redis-клиент, один из:
