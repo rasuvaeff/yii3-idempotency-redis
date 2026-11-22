@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.1 — 2026-11-22
 
 - **Changed:** dev tooling: `vimeo/psalm` floor raised `^7.0` → `^7.15`: psalm 7.15 introduced the `WeakHash` check and its issueHandlers schema entry, and the Redis `EVALSHA` script digests need a scoped suppression that older psalm versions cannot parse.
 - **Changed:** PHP 8.6 is supported: the `php` constraint is widened to
