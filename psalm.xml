@@ -16,4 +16,19 @@
     <enableExtensions>
         <extension name="redis"/>
     </enableExtensions>
+
+    <issueHandlers>
+        <!-- The script digest passed to Redis EVALSHA is defined by the Redis
+             protocol: the server matches loaded scripts by their SHA1. There
+             is no stronger algorithm to switch to, so the WeakHash check
+             (psalm 7.15, issue #381) is a false positive here — the hash never
+             covers user data. Remove this rule if psalm ever learns to exempt
+             protocol-mandated digests. -->
+        <WeakHash>
+            <errorLevel type="suppress">
+                <file name="src/Redis/PhpRedisScriptRunner.php"/>
+                <file name="src/Redis/PredisScriptRunner.php"/>
+            </errorLevel>
+        </WeakHash>
+    </issueHandlers>
 </psalm>

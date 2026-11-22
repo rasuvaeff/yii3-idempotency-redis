@@ -18,7 +18,7 @@ handlers, and the server's own key expiry standing in for a garbage collector.
 
 ## Requirements
 
-- PHP 8.3+
+- PHP 8.3 – 8.6
 - `rasuvaeff/yii3-idempotency` ^2.2
 - `psr/clock` ^1.0
 - A Redis client, either one of:
